@@ -416,7 +416,7 @@ class unit:
             a=a+1
         return outputs
             
-    def test(self):
+    def test_once(self):
         score=0
         j=0
         while j<testsize:
@@ -426,17 +426,22 @@ class unit:
             while a<bitsize:
                 inputs.append(random.randint(0,1))
                 a=a+1
-            #print inputs
+            print inputs
             self.cycle(inputs)
             #self.mutate()
             o=self.read_outputs()
-            #print o
-            #print ""
-            #print j
+            print o
+            print ""
+            print j
             if o[0]==1:
                 score=score+1/testsize
             j=j+1
         return score
+
+    #def test_n(self,n):
+     #   bestscore=0
+        
+        
         
 
 def init():
