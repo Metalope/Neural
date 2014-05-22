@@ -20,7 +20,6 @@ the evolutionary search is still somewhat buggy
 
 TO DO
 
-SAVE/LOAD state of neuronal configuration in easily readable format
 
 High level abstract way to connect separate units
 
@@ -32,3 +31,8 @@ Render image of Neural Network
 
 Post best results online
 
+
+
+DONE
+
+SAVE/LOAD state of neuronal configuration in easily readable format
