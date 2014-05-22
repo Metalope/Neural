@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import json
 
 neuron_decay=0.9
 maxneuronsperunit=64
@@ -447,9 +448,76 @@ class unit:
 def init():
     units[0].add_n_neurons(maxneuronsperunit,1)
     units[0].designate_io(bitsize)
-    
+    units[0].active=True
 
 
         
 units=[unit(i) for i in range(maxunits)]
+
+def load():
+    global data,units
+    units=[unit(i) for i in range(maxunits)]
+    file=open('config.txt')
+    f=file.read()
+
+    data=json.loads(f)
+    
+    a=0
+    while a<len(data):
+        r=units[a].unitid
+        units[r].active_axons=data[a]['active_axons']
+        units[r].active_neurons=data[a]['active_neurons']
+        units[r].input_neurons=data[a]['input_neurons']
+        units[r].output_neurons=data[a]['output_neurons']
+
+        a=a+1
+
+def save():
+    global data
+    f=''
+    a=0
+    data=[] #each element is a unit
+    while a<maxunits:
+
+        if units[a].active:
+
+            r={'active_neurons':units[a].active_neurons,'active_axons':units[a].active_axons,'input_neurons':units[a].input_neurons,'output_neurons':units[a].output_neurons}
+            r['neurons']=[]
+            r['unitid']=a
+            #save neuron data in each active unit
+            b=0
+            while b<maxneuronsperunit:
+                if units[a].neurons[b].active:
+
+                    d={'can_mutate':units[a].neurons[b].can_mutate,'threshold':units[a].neurons[b].threshold,'currentamount':units[a].neurons[b].amount,'decay':units[a].neurons[b].decay}
+                    d['downstream_axons']=units[a].neurons[b].downstream_axons
+                    d['upstream_axons']=units[a].neurons[b].upstream_axons
+                    d['neuronid']=b
+
+                    r['neurons'].append(d)
+                    
+                b=b+1
+
+            b=0
+
+            r['axons']=[]
+            
+            while b<maxaxonsperunit:
+                if units[a].axons[b].active:
+                    g={'fire_amount':units[a].axons[b].fire_amount,'axonid':b,'upstream_neuron':units[a].axons[b].upstream_neuron,'downstream_neuron':units[a].axons[b].downstream_neuron}
+
+                    r['axons'].append(g)
+
+                b=b+1
+
+            data.append(r)
+ 
+        a=a+1
+
+    v=json.dumps(data)
+
+    file=open('config.txt','wb')
+    file.write(v)
+    file.close()
+
 init()
