@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import json
+import math
 
 neuron_decay=0.9
 maxneuronsperunit=64
@@ -11,7 +12,7 @@ binary_io=True
 bitsize=8
 
 runtime=20
-testsize=20
+testsize=2000
 
 
 class neuron:
@@ -132,6 +133,11 @@ class unit:
     def cycle(self,inputs):
         a=0
         outputs=[]
+
+        #RESET ALL NEURONS BETWEEN CYCLES
+        for x in self.neurons:
+            x.amount=0
+        
         while a<runtime:
             b=0
 
@@ -163,10 +169,10 @@ class unit:
         for y in self.output_neurons:
             print str(y)
 
-    def designate_io(self,n):
+    def designate_io(self,ins,outs):
         a=0
         b=0
-        while b<n and a<maxneuronsperunit:
+        while b<ins and a<maxneuronsperunit:
             if self.neurons[a].active:
                 self.neurons[a].can_mutate=False
                 self.neurons[a].decay=1
@@ -179,7 +185,7 @@ class unit:
             a=a+1
         c=0
         d=a
-        while c<n and d<maxneuronsperunit:
+        while c<outs and d<maxneuronsperunit:
             if self.neurons[d].active:
                 self.neurons[d].can_mutate=False
                 self.neurons[d].decay=1
@@ -188,7 +194,7 @@ class unit:
                 self.output_neurons.append(d)
                 c=c+1
             d=d+1
-        if c==n and b==n:
+        if c==ins and b==outs:
             return True
         else:
             return False
@@ -392,7 +398,7 @@ class unit:
             ok=True
             a=0
             changeamt=(random.random()-0.5)
-            while ok:
+            while ok and a<maxneuronsperunit:
                 if self.neurons[a].active:
                     self.neurons[a].decay=self.neurons[a].decay+changeamt
                    # print "changed decay for "+str(a)+ " by "+str(changeamt)
@@ -406,6 +412,7 @@ class unit:
             a=a+1
 
     def read_outputs(self):
+        #OUTPUTS IN BINARY
         outputs=[]
         a=0
         while a<len(self.output_neurons):
@@ -416,7 +423,19 @@ class unit:
                 outputs.append(0)
             a=a+1
         return outputs
-            
+
+    def read_inputs(self):
+        inputs=[]
+        a=0
+        while a<len(self.input_neurons):
+            n=self.input_neurons[a]
+            if self.neurons[n].active:
+                inputs.append(self.neurons[n].amount)
+            else:
+                inputs.append(0)
+            a=a+1
+        return inputs
+    
     def test_once(self):
         score=0
         j=0
@@ -438,6 +457,60 @@ class unit:
                 score=score+1/testsize
             j=j+1
         return score
+    
+    def addition_test(self):
+        bestscore=0
+        score=0
+        j=0
+        while j<testsize:
+            sum=0
+            outd=0
+            inputs=[]
+            a=0
+            while a<bitsize:
+                inputs.append(random.randint(0,1))
+                a=a+1
+            
+            self.cycle(inputs)
+            ins=self.read_inputs()
+            in1=ins[0:bitsize]
+            in2=ins[bitsize:len(ins)]
+
+            r=1
+            sum=0
+            for x in in1:
+                sum=sum+r*x
+                r=r*2
+            r=1
+            for x in in2:
+                sum=sum+r*x
+                r=r*2
+            print sum
+            print in1
+            print in2
+            
+            out=self.read_outputs()
+            outd=0
+            r=1
+            for x in out:
+               outd=outd+r*x
+               r=r*2
+            print outd
+
+            score=score+math.pow(5,-1*(sum-outd)*(sum-outd))/testsize
+            
+            print score
+            if score>bestscore:
+                bestscore=score
+                save()
+            
+
+
+            self.mutate()
+            j=j+1
+            
+            
+            
 
     #def test_n(self,n):
      #   bestscore=0
@@ -447,7 +520,7 @@ class unit:
 
 def init():
     units[0].add_n_neurons(maxneuronsperunit,1)
-    units[0].designate_io(bitsize)
+    units[0].designate_io(bitsize*2,bitsize)
     units[0].active=True
 
 
@@ -536,7 +609,7 @@ def save():
             
             while b<maxaxonsperunit:
                 if units[a].axons[b].active:
-                    g={'fire_amount':units[a].axons[b].fire_amount,'axonid':b,'upstream_neuron':units[a].axons[b].upstream_neuron,'downstream_neuron':units[a].axons[b].downstream_neuron}
+                    g={'fire_amount':units[a].axons[b].fireamount,'axonid':b,'upstream_neuron':units[a].axons[b].upstream_neuron,'downstream_neuron':units[a].axons[b].downstream_neuron}
 
                     r['axons'].append(g)
 
