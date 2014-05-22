@@ -457,6 +457,7 @@ units=[unit(i) for i in range(maxunits)]
 def load():
     global data,units
     units=[unit(i) for i in range(maxunits)]
+  #  try:
     file=open('config.txt')
     f=file.read()
 
@@ -464,13 +465,44 @@ def load():
     
     a=0
     while a<len(data):
-        r=units[a].unitid
+        r=data[a]['unitid']
         units[r].active_axons=data[a]['active_axons']
         units[r].active_neurons=data[a]['active_neurons']
         units[r].input_neurons=data[a]['input_neurons']
         units[r].output_neurons=data[a]['output_neurons']
 
+            #load neuron data
+        n=0
+        while n<len(data[a]['neurons']):
+
+            neuronid=data[a]['neurons'][n]['neuronid']
+            units[r].neurons[neuronid].threshold=data[a]['neurons'][n]['threshold']
+            units[r].neurons[neuronid].can_mutate=data[a]['neurons'][n]['can_mutate']
+            units[r].neurons[neuronid].amount=data[a]['neurons'][n]['currentamount']
+            units[r].neurons[neuronid].decay=data[a]['neurons'][n]['decay']
+            units[r].neurons[neuronid].downstream_axons=data[a]['neurons'][n]['downstream_axons']
+            units[r].neurons[neuronid].upstream_axons=data[a]['neurons'][n]['upstream_axons']
+            units[r].neurons[neuronid].active=True
+            n=n+1
+
+
+            #load axon data
+        g=0
+        while g<len(data[a]['axons']):
+            axon=data[a]['axons'][g]
+            axonid=axon['axonid']
+
+            units[r].axons[axonid].fire_amount=axon['fire_amount']
+            units[r].axons[axonid].upstream_neuron=axon['upstream_neuron']
+            units[r].axons[axonid].downstream_neuron=axon['downstream_neuron']
+            units[r].axons[axonid].active=True
+            g=g+1
+
         a=a+1
+
+
+    #except:
+        #print "no save file found"
 
 def save():
     global data
@@ -520,4 +552,4 @@ def save():
     file.write(v)
     file.close()
 
-init()
+#init()
