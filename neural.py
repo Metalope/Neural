@@ -12,7 +12,7 @@ binary_io=True
 bitsize=8
 
 runtime=20
-testsize=2000
+testsize=20
 
 
 class neuron:
@@ -342,8 +342,8 @@ class unit:
         elif choice<60: #change fireamount
             ok=True
             a=0
-            changeamt=(random.randint(-5,5))/10
             while ok and a<len(self.axons):
+                changeamt=(random.randint(-5,5))/10
                 if self.axons[a].active:
                     ok=False
                     self.axons[a].fireamount=self.axons[a].fireamount+changeamt
@@ -435,194 +435,105 @@ class unit:
                 inputs.append(0)
             a=a+1
         return inputs
+
     
-    def test_once(self):
-        score=0
-        j=0
-        while j<testsize:
 
-            inputs=[]
-            a=0
-            while a<bitsize:
-                inputs.append(random.randint(0,1))
-                a=a+1
-            print inputs
-            self.cycle(inputs)
-            #self.mutate()
-            o=self.read_outputs()
-            print o
-            print ""
-            print j
-            if o[0]==1:
-                score=score+1/testsize
-            j=j+1
-        return score
-    
-    def addition_test(self):
-        bestscore=0
-        score=0
-        j=0
-        while j<testsize:
-            sum=0
-            outd=0
-            inputs=[]
-            a=0
-            while a<bitsize:
-                inputs.append(random.randint(0,1))
-                a=a+1
-            
-            self.cycle(inputs)
-            ins=self.read_inputs()
-            in1=ins[0:bitsize]
-            in2=ins[bitsize:len(ins)]
-
-            r=1
-            sum=0
-            for x in in1:
-                sum=sum+r*x
-                r=r*2
-            r=1
-            for x in in2:
-                sum=sum+r*x
-                r=r*2
-            print sum
-            print in1
-            print in2
-            
-            out=self.read_outputs()
-            outd=0
-            r=1
-            for x in out:
-               outd=outd+r*x
-               r=r*2
-            print outd
-
-            score=score+math.pow(5,-1*(sum-outd)*(sum-outd))/testsize
-            
-            print score
-            if score>bestscore:
-                bestscore=score
-                save()
-            
-
-
-            self.mutate()
-            j=j+1
-            
-            
-            
-
-    #def test_n(self,n):
-     #   bestscore=0
-        
-        
-        
-
-def init():
-    units[0].add_n_neurons(maxneuronsperunit,1)
-    units[0].designate_io(bitsize*2,bitsize)
-    units[0].active=True
-
-
-        
-units=[unit(i) for i in range(maxunits)]
-
-def load():
-    global data,units
+class system:
     units=[unit(i) for i in range(maxunits)]
-  #  try:
-    file=open('config.txt')
-    f=file.read()
 
-    data=json.loads(f)
+    def init(self, n_units):
+        for i in range(0,n_units):
+            self.units[i].add_n_neurons(maxneuronsperunit,1)
+            self.units[i].designate_io(bitsize*2,bitsize)
+            self.units[i].active=True
+
+    def save(self):
+        global data
+        a=0
+        data=[] #each element is a unit
+        while a<maxunits:
+            if self.units[a].active:
+
+                r={'active_neurons':self.units[a].active_neurons,'active_axons':self.units[a].active_axons,'input_neurons':self.units[a].input_neurons,'output_neurons':self.units[a].output_neurons}
+                r['neurons']=[]
+                r['unitid']=a
+                #save neuron data in each active unit
+                b=0
+                while b<maxneuronsperunit:
+                    if self.units[a].neurons[b].active:
+
+                        d={'can_mutate':self.units[a].neurons[b].can_mutate,'threshold':self.units[a].neurons[b].threshold,'currentamount':self.units[a].neurons[b].amount,'decay':self.units[a].neurons[b].decay}
+                        d['downstream_axons']=self.units[a].neurons[b].downstream_axons
+                        d['upstream_axons']=self.units[a].neurons[b].upstream_axons
+                        d['neuronid']=b
+
+                        r['neurons'].append(d)
+                    
+                    b=b+1
+
+                b=0
+
+                r['axons']=[]
+            
+                while b<maxaxonsperunit:
+                    if self.units[a].axons[b].active:
+                        g={'fire_amount':self.units[a].axons[b].fireamount,'axonid':b,'upstream_neuron':self.units[a].axons[b].upstream_neuron,'downstream_neuron':self.units[a].axons[b].downstream_neuron}
+
+                        r['axons'].append(g)
+
+                    b=b+1
+
+                data.append(r)
+ 
+            a=a+1
+
+        v=json.dumps(data)
+
+        file=open('config.txt','wb')
+        file.write(v)
+        file.close()
+
+    def load(self):
+        global data,units
+        file=open('config.txt')
+        f=file.read()
+
+        data=json.loads(f)
     
-    a=0
-    while a<len(data):
-        r=data[a]['unitid']
-        units[r].active_axons=data[a]['active_axons']
-        units[r].active_neurons=data[a]['active_neurons']
-        units[r].input_neurons=data[a]['input_neurons']
-        units[r].output_neurons=data[a]['output_neurons']
+        a=0
+        while a<len(data):
+            r=data[a]['unitid']
+            self.units[r].active_axons=data[a]['active_axons']
+            self.units[r].active_neurons=data[a]['active_neurons']
+            self.units[r].input_neurons=data[a]['input_neurons']
+            self.units[r].output_neurons=data[a]['output_neurons']
 
             #load neuron data
-        n=0
-        while n<len(data[a]['neurons']):
+            n=0
+            while n<len(data[a]['neurons']):
 
-            neuronid=data[a]['neurons'][n]['neuronid']
-            units[r].neurons[neuronid].threshold=data[a]['neurons'][n]['threshold']
-            units[r].neurons[neuronid].can_mutate=data[a]['neurons'][n]['can_mutate']
-            units[r].neurons[neuronid].amount=data[a]['neurons'][n]['currentamount']
-            units[r].neurons[neuronid].decay=data[a]['neurons'][n]['decay']
-            units[r].neurons[neuronid].downstream_axons=data[a]['neurons'][n]['downstream_axons']
-            units[r].neurons[neuronid].upstream_axons=data[a]['neurons'][n]['upstream_axons']
-            units[r].neurons[neuronid].active=True
-            n=n+1
+                neuronid=data[a]['neurons'][n]['neuronid']
+                self.units[r].neurons[neuronid].threshold=data[a]['neurons'][n]['threshold']
+                self.units[r].neurons[neuronid].can_mutate=data[a]['neurons'][n]['can_mutate']
+                self.units[r].neurons[neuronid].amount=data[a]['neurons'][n]['currentamount']
+                self.units[r].neurons[neuronid].decay=data[a]['neurons'][n]['decay']
+                self.units[r].neurons[neuronid].downstream_axons=data[a]['neurons'][n]['downstream_axons']
+                self.units[r].neurons[neuronid].upstream_axons=data[a]['neurons'][n]['upstream_axons']
+                self.units[r].neurons[neuronid].active=True
+                n=n+1
 
 
             #load axon data
-        g=0
-        while g<len(data[a]['axons']):
-            axon=data[a]['axons'][g]
-            axonid=axon['axonid']
+            g=0
+            while g<len(data[a]['axons']):
+                axon=data[a]['axons'][g]
+                axonid=axon['axonid']
 
-            units[r].axons[axonid].fire_amount=axon['fire_amount']
-            units[r].axons[axonid].upstream_neuron=axon['upstream_neuron']
-            units[r].axons[axonid].downstream_neuron=axon['downstream_neuron']
-            units[r].axons[axonid].active=True
-            g=g+1
+                self.units[r].axons[axonid].fire_amount=axon['fire_amount']
+                self.units[r].axons[axonid].upstream_neuron=axon['upstream_neuron']
+                self.units[r].axons[axonid].downstream_neuron=axon['downstream_neuron']
+                self.units[r].axons[axonid].active=True
+                g=g+1
 
-        a=a+1
+            a=a+1
 
-
-    #except:
-        #print "no save file found"
-
-def save():
-    global data
-    f=''
-    a=0
-    data=[] #each element is a unit
-    while a<maxunits:
-
-        if units[a].active:
-
-            r={'active_neurons':units[a].active_neurons,'active_axons':units[a].active_axons,'input_neurons':units[a].input_neurons,'output_neurons':units[a].output_neurons}
-            r['neurons']=[]
-            r['unitid']=a
-            #save neuron data in each active unit
-            b=0
-            while b<maxneuronsperunit:
-                if units[a].neurons[b].active:
-
-                    d={'can_mutate':units[a].neurons[b].can_mutate,'threshold':units[a].neurons[b].threshold,'currentamount':units[a].neurons[b].amount,'decay':units[a].neurons[b].decay}
-                    d['downstream_axons']=units[a].neurons[b].downstream_axons
-                    d['upstream_axons']=units[a].neurons[b].upstream_axons
-                    d['neuronid']=b
-
-                    r['neurons'].append(d)
-                    
-                b=b+1
-
-            b=0
-
-            r['axons']=[]
-            
-            while b<maxaxonsperunit:
-                if units[a].axons[b].active:
-                    g={'fire_amount':units[a].axons[b].fireamount,'axonid':b,'upstream_neuron':units[a].axons[b].upstream_neuron,'downstream_neuron':units[a].axons[b].downstream_neuron}
-
-                    r['axons'].append(g)
-
-                b=b+1
-
-            data.append(r)
- 
-        a=a+1
-
-    v=json.dumps(data)
-
-    file=open('config.txt','wb')
-    file.write(v)
-    file.close()
-
-#init()
