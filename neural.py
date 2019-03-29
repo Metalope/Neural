@@ -29,7 +29,7 @@ class neuron:
     downstream_axons=[]
     upstream_axons=[]
 
-    def __init__(self,id,threshold):
+    def __init__(self, id, threshold):
         self.id=id
         self.threshold=threshold
 
@@ -54,7 +54,7 @@ class axon:
     downstream_neuron=-1
 
     
-    def __init__(self,id):
+    def __init__(self, id):
         self.id=id
 
     def fire(self):
@@ -73,13 +73,13 @@ class unit:
     input_neurons=[]
     output_neurons=[]
 
-    neurons=[neuron(i,999) for i in range(maxneuronsperunit)]
+    neurons=[neuron(i, 999) for i in range(maxneuronsperunit)]
     axons=[axon(i) for i in range(maxaxonsperunit)]
 
-    def __init__(self,id):
+    def __init__(self, id):
         self.id=id
 
-    def add_neuron(self,threshold):
+    def add_neuron(self, threshold):
         a=0
         b=-1
         while a<maxneuronsperunit:
@@ -94,20 +94,20 @@ class unit:
         self.neurons[b].threshold=threshold
         return b
 
-    def add_n_neurons(self,n,threshold):
+    def add_n_neurons(self, n, threshold):
         a=0
         while a<n:
             self.add_neuron(threshold)
             a=a+1
 
-    def remove_neuron(self,n):
+    def remove_neuron(self, n):
         if self.neurons[n].active==True:
             self.neurons[n].active=False
             self.neurons[n].amount=0
             self.neurons[n].threshold=999
             self.active_neurons=self.active_neurons-1
 
-    def connect(self,a,b,amount):
+    def connect(self, a, b, amount):
         if self.neurons[a].active and self.neurons[b].active:
 
             c=0
@@ -130,7 +130,7 @@ class unit:
         else:
             return False
 
-    def cycle(self,inputs):
+    def cycle(self, inputs):
         a=0
         outputs=[]
 
@@ -169,7 +169,7 @@ class unit:
         for y in self.output_neurons:
             print str(y)
 
-    def designate_io(self,ins,outs):
+    def designate_io(self, ins, outs):
         a=0
         b=0
         while b<ins and a<maxneuronsperunit:
@@ -199,7 +199,7 @@ class unit:
         else:
             return False
 
-    def remove_axon(self,n):
+    def remove_axon(self, n):
         if self.axons[n].active:
             self.axons[n].active=False
             self.axons[n].id=-1
@@ -224,7 +224,7 @@ class unit:
                         self.neurons[d].upstream_axons[b]=-1
                     b=b+1
 
-    def change_axon_destination(self,a,d):
+    def change_axon_destination(self, a, d):
         if self.axons[a].active:
             b=self.axons[a].downstream_neuron
             h=0
@@ -236,7 +236,7 @@ class unit:
             self.neurons[b].upstream_axons.append(a)
             self.axons[a].downstream_neuron=d
 
-    def change_axon_source(self,a,s):
+    def change_axon_source(self, a, s):
         if self.axons[a].active:
             b=self.axons[a].upstream_neuron
             h=0
@@ -248,21 +248,21 @@ class unit:
             self.neurons[b].downstream_axons.append(a)
             
                         
-    def change_threshold(self,n,r):
+    def change_threshold(self, n, r):
         if self.neurons[n].active:
             self.neurons[n].threshold=r
             return True
         else:
             return False
 
-    def change_fireamount(self,a,r):
+    def change_fireamount(self, a, r):
         if self.axons[a].active:
             self.axons[a].fireamount=r
             return True
         else:
             return False
 
-    def change_decay(self,n,r):
+    def change_decay(self, n, r):
         if self.neurons[n].active:
             self.neurons[n].decay=r
             return True
@@ -270,7 +270,7 @@ class unit:
             return False
 
     def mutate(self):
-        choice=random.randint(0,100)
+        choice=random.randint(0, 100)
         #print choice
         
         if choice<10:  #add neuron
@@ -294,12 +294,12 @@ class unit:
 
         elif choice<30: #add connection
             ok=True
-            fireamount=random.randint(0,4)
+            fireamount=random.randint(0, 4)
             fro=-1
             to=-1
             a=0
             while ok and a<maxneuronsperunit:
-                f=random.randint(0,maxneuronsperunit-1)
+                f=random.randint(0, maxneuronsperunit-1)
                 if self.neurons[f].active:
                    fro=f
                    ok=False
@@ -307,20 +307,20 @@ class unit:
             ok=True
             b=0
             while ok and b<maxneuronsperunit:
-                t=random.randint(0,maxneuronsperunit-1)
+                t=random.randint(0, maxneuronsperunit-1)
                 if self.neurons[t].active:
                     to=t
                     ok=False
                 b=b+1
             if to>-1 and fro > -1:
-                self.connect(fro,to,fireamount)
+                self.connect(fro, to, fireamount)
                 #print "connected "+str(fro)+" to "+str(to)+" for "+str(fireamount)
 
         elif choice<40:  #remove connection
             ok=True
             a=0
             while ok:
-                h=random.randint(0,maxaxonsperunit-1)
+                h=random.randint(0, maxaxonsperunit-1)
                 if self.axons[h].active:
                    ok=False
                    #self.remove_axon(h)
@@ -333,7 +333,7 @@ class unit:
             ok=True
             changeamt=(random.random()-0.5)*2
             while ok:
-                a=random.randint(0,maxneuronsperunit-1)
+                a=random.randint(0, maxneuronsperunit-1)
                 if self.neurons[a].active:
                     self.neurons[a].threshold=self.neurons[a].threshold+changeamt
                  #   print "changed threshold for "+str(a)+ " by "+str(changeamt)
@@ -343,7 +343,7 @@ class unit:
             ok=True
             a=0
             while ok and a<len(self.axons):
-                changeamt=(random.randint(-5,5))/10
+                changeamt=(random.randint(-5, 5))/10
                 if self.axons[a].active:
                     ok=False
                     self.axons[a].fireamount=self.axons[a].fireamount+changeamt
@@ -355,7 +355,7 @@ class unit:
             b=0
             kk=True
             while kk:
-                towhere=random.randint(0,maxneuronsperunit-1)
+                towhere=random.randint(0, maxneuronsperunit-1)
                 if self.neurons[towhere].active:
                     kk=False
                 b=b+1
@@ -367,7 +367,7 @@ class unit:
             
             while ok and a<len(self.axons):
                 if self.axons[a].active:
-                    self.change_axon_source(a,towhere)
+                    self.change_axon_source(a, towhere)
                 #    print "changed axon source to "+str(towhere)+" for "+str(a)
                     ok=False
                 a=a+1
@@ -377,7 +377,7 @@ class unit:
             b=0
             kk=True
             while kk:
-                towhere=random.randint(0,maxneuronsperunit-1)
+                towhere=random.randint(0, maxneuronsperunit-1)
                 if self.neurons[towhere].active:
                     kk=False
                 b=b+1
@@ -389,7 +389,7 @@ class unit:
             
             while ok and a<len(self.axons):
                 if self.axons[a].active:
-                    self.change_axon_destination(a,towhere)
+                    self.change_axon_destination(a, towhere)
                   #  print "changed axon destination to "+str(towhere)+" for "+str(a)
                     ok=False
                 a=a+1
@@ -405,7 +405,7 @@ class unit:
                     ok=False
                 a=a+1
 
-    def mutate_n(self,n):
+    def mutate_n(self, n):
         a=0
         while a<n:
             self.mutate()
@@ -442,9 +442,9 @@ class system:
     units=[unit(i) for i in range(maxunits)]
 
     def init(self, n_units):
-        for i in range(0,n_units):
-            self.units[i].add_n_neurons(maxneuronsperunit,1)
-            self.units[i].designate_io(bitsize*2,bitsize)
+        for i in range(0, n_units):
+            self.units[i].add_n_neurons(maxneuronsperunit, 1)
+            self.units[i].designate_io(bitsize*2, bitsize)
             self.units[i].active=True
 
     def save(self):
@@ -454,7 +454,7 @@ class system:
         while a<maxunits:
             if self.units[a].active:
 
-                r={'active_neurons':self.units[a].active_neurons,'active_axons':self.units[a].active_axons,'input_neurons':self.units[a].input_neurons,'output_neurons':self.units[a].output_neurons}
+                r={'active_neurons': self.units[a].active_neurons, 'active_axons': self.units[a].active_axons, 'input_neurons': self.units[a].input_neurons, 'output_neurons': self.units[a].output_neurons}
                 r['neurons']=[]
                 r['unitid']=a
                 #save neuron data in each active unit
@@ -462,7 +462,7 @@ class system:
                 while b<maxneuronsperunit:
                     if self.units[a].neurons[b].active:
 
-                        d={'can_mutate':self.units[a].neurons[b].can_mutate,'threshold':self.units[a].neurons[b].threshold,'currentamount':self.units[a].neurons[b].amount,'decay':self.units[a].neurons[b].decay}
+                        d={'can_mutate': self.units[a].neurons[b].can_mutate, 'threshold': self.units[a].neurons[b].threshold, 'currentamount': self.units[a].neurons[b].amount, 'decay': self.units[a].neurons[b].decay}
                         d['downstream_axons']=self.units[a].neurons[b].downstream_axons
                         d['upstream_axons']=self.units[a].neurons[b].upstream_axons
                         d['neuronid']=b
@@ -477,7 +477,7 @@ class system:
             
                 while b<maxaxonsperunit:
                     if self.units[a].axons[b].active:
-                        g={'fire_amount':self.units[a].axons[b].fireamount,'axonid':b,'upstream_neuron':self.units[a].axons[b].upstream_neuron,'downstream_neuron':self.units[a].axons[b].downstream_neuron}
+                        g={'fire_amount': self.units[a].axons[b].fireamount, 'axonid': b, 'upstream_neuron': self.units[a].axons[b].upstream_neuron, 'downstream_neuron': self.units[a].axons[b].downstream_neuron}
 
                         r['axons'].append(g)
 
@@ -489,12 +489,12 @@ class system:
 
         v=json.dumps(data)
 
-        file=open('config.txt','wb')
+        file=open('config.txt', 'wb')
         file.write(v)
         file.close()
 
     def load(self):
-        global data,units
+        global data, units
         file=open('config.txt')
         f=file.read()
 
